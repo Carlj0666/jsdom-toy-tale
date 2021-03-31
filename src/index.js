@@ -1,7 +1,6 @@
 let addToy = false
 let collection = document.getElementById("toy-collection")
-const createButton = document.getElementsByClassName('submit')
-const addToyContainer = document.getElementsByClassName('add-toy-form')
+const addToyContainer = document.querySelector('.add-toy-form')
 
 document.addEventListener("DOMContentLoaded", () => {
   const addBtn = document.querySelector("#new-toy-btn");
@@ -37,25 +36,41 @@ function renderToContainer(toy) {
   p.innerText = `${toy.likes} Likes`
 
   let button = document.createElement('button')
+  console.log(button)
   button.innerText = 'like'
   button.setAttribute('class', 'like-btn')
+  button.setAttribute('id', toy.id)
   button.addEventListener('click', (event) => {
-   // invoke a function to handle likes
-
+    console.log(event)
+    event.preventDefault()
+    let likeIncrementer = parseInt(event.target.previousElementSibling.innerText) + 1
+    fetch(`http://localhost:3000/toys/${event.target.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify({
+        "likes": likeIncrementer
+      })
+    })
+    .then(res => res.json())
+    .then((like_obj => {
+      event.target.previousElementSibling.innerText = `${likeIncrementer} likes`;
+    }))
   })
+
   let card = document.createElement('div')
   card.setAttribute('class', 'card')
   card.append(h2, img, p, button)
   collection.append(card)
 }
 
-createButton.addEventListener("click", () => { createNewToy('addToyContainer')
 
-//Add new toy function
-  function createNewToy(addToyContainer) {
-    let toy_name = addToyContainer[0][0].name
-    let toy_image = addToyContainer[0][1].image
-    debugger
+addToyContainer.addEventListener("submit", (event) => {
+  event.preventDefault()
+      let toyName = event.target.name.value
+      let toyImage = event.target.image.value
     
     fetch('http://localhost:3000/toys', {
       method: 'POST',
@@ -63,8 +78,8 @@ createButton.addEventListener("click", () => { createNewToy('addToyContainer')
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        "name": toy_name,
-        "image": toy_image,
+        "name": toyName,
+        "image": toyImage,
         "likes": 0
       })
     })
@@ -76,7 +91,7 @@ createButton.addEventListener("click", () => { createNewToy('addToyContainer')
       .catch((error) => {
       console.error('Error:', error);
   })
-}
+})
 
 
 getToyCollection()
